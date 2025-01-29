@@ -4,19 +4,31 @@ defmodule BankingService.Transactions.Transaction do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
+  @derive {Jason.Encoder,
+           only: [
+             :id,
+             :amount,
+             :status,
+             :account_from_id,
+             :account_to_id,
+             :inserted_at,
+             :updated_at
+           ]}
+
   schema "transactions" do
     field :amount, :decimal
     field :status, :string
-    field :account_from_id, :binary_id
-    field :account_to_id, :binary_id
-
+    belongs_to :account_from, BankingService.Accounts.Account, type: :binary_id
+    belongs_to :account_to, BankingService.Accounts.Account, type: :binary_id
     timestamps(type: :utc_datetime)
   end
 
   @doc false
   def changeset(transaction, attrs) do
     transaction
-    |> cast(attrs, [:amount, :status])
-    |> validate_required([:amount, :status])
+    |> cast(attrs, [:account_from_id, :account_to_id, :amount, :status])
+    |> validate_required([:account_from_id, :account_to_id, :amount, :status])
+    |> foreign_key_constraint(:account_from_id)
+    |> foreign_key_constraint(:account_to_id)
   end
 end
