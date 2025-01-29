@@ -1,46 +1,84 @@
 defmodule BankingService.Transactions do
+
+  alias BankingService.Accounts.Account
   alias BankingService.Repo
   alias BankingService.Transactions.Transaction
-  alias BankingService.Accounts.Account
-  alias Ecto.Multi
+  alias BankingService.Transactions.TransactionServer
+
+  import Ecto.Query
+  import Ecto.Multi
 
   def create_transaction(attrs) do
-    attrs =
-      attrs
-      |> Map.new(fn {k, v} -> {String.to_atom(k), v} end)
-      |> Map.put(:amount, Decimal.new(attrs["amount"]))
+    IO.inspect(attrs, label: "Received attrs")
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:check_balance, fn _repo, _changes ->
-      check_balance(attrs)
-    end)
-    |> Ecto.Multi.run(:create_transaction, fn repo, %{check_balance: account} ->
-      %Transaction{}
-      |> Transaction.changeset(attrs)
-      |> repo.insert()
-    end)
-    |> Ecto.Multi.run(:update_balances, fn repo, %{create_transaction: transaction} ->
-      # Extraindo as contas de origem e destino para usar na atualização
-      from_account = Repo.get!(Account, transaction.account_from_id)
-      to_account = Repo.get!(Account, transaction.account_to_id)
+    case attrs do
+      %{"amount" => amount, "account_from_id" => from_id, "account_to_id" => to_id} = transaction
+      when is_binary(amount) ->
+        IO.inspect(amount, label: "Amount extracted")
 
-      # Chamando a função para atualizar os saldos com as contas
-      update_balances(from_account, to_account, transaction.amount)
-    end)
-    |> Ecto.Multi.run(:update_transaction_status, fn repo, %{create_transaction: transaction} ->
-      # Atualizando o status da transação para "completed"
-      transaction
-      |> Transaction.changeset(%{status: "completed"})
-      |> repo.update()
-    end)
-    |> Repo.transaction()
+        decimal_amount = Decimal.new(amount)
+        transaction = Map.put(transaction, "amount", decimal_amount)
+
+        BankingService.Repo.transaction(fn ->
+          with {:ok, from_account} <- get_account(from_id),
+               {:ok, to_account} <- get_account(to_id),
+               true <- valid_balance?(from_account, decimal_amount),
+               {:ok, transaction} <- insert_transaction(transaction),
+               {:ok, _updated_from} <-
+                 update_balance(from_account, Decimal.negate(decimal_amount)),
+               {:ok, _updated_to} <- update_balance(to_account, decimal_amount) do
+            transaction
+          else
+            error -> Repo.rollback(error)
+          end
+        end)
+        |> case do
+          {:ok, transaction} -> {:ok, transaction}
+          {:error, reason} -> {:error, reason}
+        end
+
+      _ ->
+        {:error, "Invalid parameters"}
+    end
+  end
+
+  def update_transaction_status(%Transaction{} = transaction, status) do
+    transaction
+    |> Ecto.Changeset.change(status: status)
+    |> Repo.update()
+  end
+
+  # Métodos auxiliares para checar saldo e atualizar as contas
+  defp get_account(account_id) do
+    case Repo.get(Account, account_id) do
+      nil -> {:error, "Account not found"}
+      account -> {:ok, account}
+    end
+  end
+
+  defp valid_balance?(account, amount) do
+    Decimal.compare(account.balance, amount) != :lt
+  end
+
+  defp insert_transaction(attrs) do
+    %Transaction{}
+    |> Transaction.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  defp update_balance(account, amount) do
+    new_balance = Decimal.add(account.balance, amount)
+
+    account
+    |> Ecto.Changeset.change(%{balance: new_balance})
+    |> Repo.update()
   end
 
   defp check_balance(%{
-         account_from_id: account_id,
-         account_to_id: _to_id,
-         amount: amount,
-         status: _status
+         "account_from_id" => account_id,
+         "account_to_id" => _to_id,
+         "amount" => amount,
+         "status" => _status
        }) do
     account = Repo.get!(Account, account_id)
     IO.inspect(account, label: "Account")

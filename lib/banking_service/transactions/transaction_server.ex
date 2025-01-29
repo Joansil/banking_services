@@ -1,11 +1,8 @@
 defmodule BankingService.Transactions.TransactionServer do
   use GenServer
 
-  alias BankingService.Repo
-  alias BankingService.Transactions.Transaction
-  alias BankingService.Accounts.Account
-
   def start_link(attrs) do
+    # Ajuste para usar string corretamente
     GenServer.start_link(__MODULE__, attrs, name: via_tuple(attrs["transaction_id"]))
   end
 
@@ -31,5 +28,5 @@ defmodule BankingService.Transactions.TransactionServer do
     {:noreply, result}
   end
 
-  defp via_tuple(transaction_id), do: {:via, Registry, {:transaction_registry, transaction_id}}
+  def via_tuple(transaction_id), do: {:via, Registry, {:transaction_registry, transaction_id}}
 end
