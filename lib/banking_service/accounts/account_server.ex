@@ -13,6 +13,7 @@ defmodule BankingService.Accounts.AccountServer do
     case GenServer.whereis(via_tuple(account_id)) do
       nil ->
         {:error, :not_found}
+
       pid ->
         GenServer.call(pid, :get_balance)
     end

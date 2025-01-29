@@ -13,7 +13,18 @@ defmodule BankingService.Accounts do
   end
 
   def update_balance(account_id, amount) do
-    AccountServer.update_balance(account_id, amount)
+    account = Repo.get(Account, account_id)
+
+    if account do
+      changeset = Account.changeset(account, %{balance: Decimal.add(account.balance, amount)})
+
+      case Repo.update(changeset) do
+        {:ok, updated_account} -> {:ok, updated_account}
+        {:error, changeset} -> {:error, changeset}
+      end
+    else
+      {:error, "Account not found"}
+    end
   end
 
   def create_account(attrs) do
