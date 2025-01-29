@@ -7,6 +7,10 @@ defmodule BankingServiceWeb.Router do
 
   scope "/api", BankingServiceWeb do
     pipe_through :api
+
+    post "/accounts", AccountController, :create
+    get "/accounts/:id", AccountController, :show
+    post "/transactions", TransactionController, :create
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

@@ -4,6 +4,8 @@ defmodule BankingService.Accounts.Account do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
+  @derive {Jason.Encoder, only: [:id, :name, :email, :balance, :inserted_at, :updated_at]}
+
   schema "accounts" do
     field :balance, :decimal
     field :email, :string
