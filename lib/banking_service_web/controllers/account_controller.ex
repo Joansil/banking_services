@@ -9,7 +9,6 @@ defmodule BankingServiceWeb.AccountController do
   def create(conn, %{"account" => account_params}) do
     case Accounts.create_account(account_params) do
       {:ok, account} ->
-        # Inicia o GenServer para a conta logo após a criação
         case AccountServer.start_link(account.id) do
           {:ok, _pid} ->
             conn
@@ -86,7 +85,6 @@ defmodule BankingServiceWeb.AccountController do
   end
 
   def update_balance(conn, %{"account_id" => account_id, "amount" => amount}) do
-    # Converter account_id para UUID
     case Ecto.UUID.cast(account_id) do
       :error ->
         conn
@@ -126,7 +124,6 @@ defmodule BankingServiceWeb.AccountController do
   end
 
   defp update_balance_and_record_transaction(account_id, amount) do
-    # Inicia um Ecto.Multi para garantir atomicidade
     Ecto.Multi.new()
     |> Ecto.Multi.update(:update_balance, Accounts.update_balance(account_id, amount))
     |> Ecto.Multi.insert(:create_transaction, Transactions.create_transaction(account_id, amount))

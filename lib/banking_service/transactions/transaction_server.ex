@@ -2,7 +2,6 @@ defmodule BankingService.Transactions.TransactionServer do
   use GenServer
 
   def start_link(attrs) do
-    # Ajuste para usar string corretamente
     GenServer.start_link(__MODULE__, attrs, name: via_tuple(attrs["transaction_id"]))
   end
 
