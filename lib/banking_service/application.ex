@@ -14,6 +14,9 @@ defmodule BankingService.Application do
       {Phoenix.PubSub, name: BankingService.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: BankingService.Finch},
+      # Start the transaction registry
+      {Registry, keys: :unique, name: :transaction_registry},
+      {Registry, keys: :unique, name: :account_registry},
       # Start a worker by calling: BankingService.Worker.start_link(arg)
       # {BankingService.Worker, arg},
       # Start to serve requests, typically the last entry
