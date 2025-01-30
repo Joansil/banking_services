@@ -13,18 +13,37 @@ defmodule BankingService.Accounts do
   end
 
   def update_balance(account_id, amount) do
-    account = Repo.get(Account, account_id)
+    Repo.transaction(fn ->
+      case Repo.get(Account, account_id) do
+        nil ->
+          Repo.rollback("Account not found")
 
-    if account do
-      changeset = Account.changeset(account, %{balance: Decimal.add(account.balance, amount)})
+        account ->
+          updated_balance = Decimal.add(account.balance, amount)
+          changeset = Account.changeset(account, %{balance: updated_balance})
 
-      case Repo.update(changeset) do
-        {:ok, updated_account} -> {:ok, updated_account}
-        {:error, changeset} -> {:error, changeset}
+          case Repo.update(changeset) do
+            {:ok, updated_account} -> {:ok, updated_account}
+            {:error, reason} -> Repo.rollback(reason)
+          end
       end
-    else
-      {:error, "Account not found"}
-    end
+    end)
+  end
+
+  def transfer_balance(from_account_id, to_account_id, amount) do
+    Repo.transaction(fn ->
+      with from_account <- Repo.get(Account, from_account_id),
+           _to_account <- Repo.get(Account, to_account_id),
+           true <- Decimal.compare(from_account.balance, amount) != :lt,
+           {:ok, _} <- update_balance(from_account_id, Decimal.negate(amount)),
+           {:ok, updated_to_account} <- update_balance(to_account_id, amount) do
+        {:ok, updated_to_account}
+      else
+        nil -> Repo.rollback("One or both accounts not found")
+        false -> Repo.rollback("Insufficient funds")
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
   end
 
   def create_account(attrs) do

@@ -10,7 +10,7 @@ defmodule BankingServiceWeb.Router do
 
     post "/accounts", AccountController, :create
     get "/accounts/:id", AccountController, :show
-    put "/accounts/:account_id/balance", AccountController, :update_balance
+    # put "/accounts/:account_id/balance", AccountController, :update_balance
     post "/transactions", TransactionController, :create
   end
 

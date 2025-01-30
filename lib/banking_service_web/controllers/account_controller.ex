@@ -3,7 +3,6 @@ defmodule BankingServiceWeb.AccountController do
 
   alias BankingService.Accounts
   alias BankingService.Accounts.AccountServer
-  alias BankingService.Repo
   alias BankingService.Transactions
 
   def create(conn, %{"account" => account_params}) do
@@ -38,7 +37,7 @@ defmodule BankingServiceWeb.AccountController do
     end)
   end
 
-  defp translate_error({msg, opts}) do
+  defp translate_error({msg, _opts}) do
     case msg do
       "has already been taken" -> "This email is already registered."
       "can't be blank" -> "This field is required."
@@ -106,7 +105,7 @@ defmodule BankingServiceWeb.AccountController do
                 |> put_status(:ok)
                 |> json(%{
                   message: "Account balance updated successfully",
-                  account: updated_account
+                  account: Map.from_struct(updated_account)
                 })
 
               {:error, reason} ->
@@ -123,17 +122,17 @@ defmodule BankingServiceWeb.AccountController do
     end
   end
 
-  defp update_balance_and_record_transaction(account_id, amount) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:update_balance, Accounts.update_balance(account_id, amount))
-    |> Ecto.Multi.insert(:create_transaction, Transactions.create_transaction(account_id, amount))
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{update_balance: account, create_transaction: transaction}} ->
-        {:ok, account, transaction}
+  # defp update_balance_and_record_transaction(account_id, amount) do
+  #   Ecto.Multi.new()
+  #   |> Ecto.Multi.update(:update_balance, Accounts.update_balance(account_id, amount))
+  #   |> Ecto.Multi.insert(:create_transaction, Transactions.create_transaction(account_id, amount))
+  #   |> Repo.transaction()
+  #   |> case do
+  #     {:ok, %{update_balance: account, create_transaction: transaction}} ->
+  #       {:ok, account, transaction}
 
-      {:error, step, reason, _changes_so_far} ->
-        {:error, "Failed to process the transaction due to: #{step} - #{reason}"}
-    end
-  end
+  #     {:error, step, reason, _changes_so_far} ->
+  #       {:error, "Failed to process the transaction due to: #{step} - #{reason}"}
+  #   end
+  # end
 end
