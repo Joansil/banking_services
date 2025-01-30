@@ -1,6 +1,8 @@
 defmodule BankingService.Transactions.TransactionServer do
   use GenServer
 
+  alias BankingService.Repo
+
   def start_link(attrs) do
     GenServer.start_link(__MODULE__, attrs, name: via_tuple(attrs["transaction_id"]))
   end
@@ -15,10 +17,15 @@ defmodule BankingService.Transactions.TransactionServer do
 
   def handle_cast(:process, attrs) do
     result =
-      BankingService.Transactions.create_transaction(attrs)
+      Repo.transaction(fn ->
+        BankingService.Transactions.create_transaction(attrs)
+      end)
       |> case do
-        {:ok, transaction} ->
+        {:ok, {:ok, transaction}} ->
           {:ok, %{transaction: transaction}}
+
+        {:ok, {:error, reason}} ->
+          {:error, reason}
 
         {:error, reason} ->
           {:error, reason}

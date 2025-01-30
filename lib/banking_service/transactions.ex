@@ -11,17 +11,17 @@ defmodule BankingService.Transactions do
       when is_binary(amount) ->
         IO.inspect(amount, label: "Amount extracted")
 
-        decimal_amount = Decimal.new(amount)
-        transaction = Map.put(transaction, "amount", decimal_amount)
+        # decimal_amount = Decimal.new(amount)
+        transaction = Map.put(transaction, "amount", amount)
 
         BankingService.Repo.transaction(fn ->
           with {:ok, from_account} <- get_account(from_id),
                {:ok, to_account} <- get_account(to_id),
-               true <- valid_balance?(from_account, decimal_amount),
+               true <- valid_balance?(from_account, amount),
                {:ok, transaction} <- insert_transaction(transaction),
                {:ok, _updated_from} <-
-                 update_balance(from_account, Decimal.negate(decimal_amount)),
-               {:ok, _updated_to} <- update_balance(to_account, decimal_amount) do
+                 update_balance(from_account, Decimal.negate(amount)),
+               {:ok, _updated_to} <- update_balance(to_account, amount) do
             {:ok, transaction}
           else
             error -> Repo.rollback(error)
@@ -67,19 +67,4 @@ defmodule BankingService.Transactions do
     |> Ecto.Changeset.change(%{balance: new_balance})
     |> Repo.update()
   end
-
-  # defp update_balances(from_account, to_account, amount) do
-  #   from_account_changeset =
-  #     from_account
-  #     |> Ecto.Changeset.change(balance: Decimal.sub(from_account.balance, amount))
-
-  #   to_account_changeset =
-  #     to_account
-  #     |> Ecto.Changeset.change(balance: Decimal.add(to_account.balance, amount))
-
-  #   Multi.new()
-  #   |> Multi.update(:from_account, from_account_changeset)
-  #   |> Multi.update(:to_account, to_account_changeset)
-  #   |> Repo.transaction()
-  # end
 end
