@@ -27,6 +27,10 @@ defmodule BankingService.DataCase do
     end
   end
 
+  setup do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(BankingService.Repo)
+  end
+
   setup tags do
     BankingService.DataCase.setup_sandbox(tags)
     :ok
