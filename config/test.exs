@@ -11,7 +11,9 @@ config :banking_service, BankingService.Repo,
   hostname: "localhost",
   database: "banking_service_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10
+  pool_size: 10,
+  show_sensitive_data_on_connection_error: true
+
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
