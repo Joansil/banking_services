@@ -5,17 +5,19 @@ defmodule BankingService.Transactions.TransactionServerTest do
   alias BankingService.Repo
 
   setup do
-    {:ok, account1} = Accounts.create_account(%{
-      "email" => "sender@example.com",
-      "name" => "Sender",
-      "balance" => "1000.00"
-    })
+    {:ok, account1} =
+      Accounts.create_account(%{
+        "email" => "sender@example.com",
+        "name" => "Sender",
+        "balance" => "1000.00"
+      })
 
-    {:ok, account2} = Accounts.create_account(%{
-      "email" => "receiver@example.com",
-      "name" => "Receiver",
-      "balance" => "500.00"
-    })
+    {:ok, account2} =
+      Accounts.create_account(%{
+        "email" => "receiver@example.com",
+        "name" => "Receiver",
+        "balance" => "500.00"
+      })
 
     {:ok, %{account1: account1, account2: account2}}
   end
@@ -23,6 +25,7 @@ defmodule BankingService.Transactions.TransactionServerTest do
   describe "TransactionServer" do
     test "starts server correctly", %{account1: account1, account2: account2} do
       transaction_id = Ecto.UUID.generate()
+
       attrs = %{
         "transaction_id" => transaction_id,
         "account_from_id" => account1.id,
@@ -36,6 +39,7 @@ defmodule BankingService.Transactions.TransactionServerTest do
 
     test "successfully processes transaction", %{account1: account1, account2: account2} do
       transaction_id = Ecto.UUID.generate()
+
       attrs = %{
         "transaction_id" => transaction_id,
         "account_from_id" => account1.id,
@@ -46,7 +50,7 @@ defmodule BankingService.Transactions.TransactionServerTest do
 
       {:ok, _pid} = TransactionServer.start_link(attrs)
       TransactionServer.process_transaction(transaction_id)
-      
+
       :timer.sleep(100)
 
       updated_account1 = Repo.get!(Accounts.Account, account1.id)
