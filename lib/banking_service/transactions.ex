@@ -2,10 +2,6 @@ defmodule BankingService.Transactions do
   alias BankingService.Accounts.Account
   alias BankingService.Repo
   alias BankingService.Transactions.Transaction
-  alias BankingService.Transactions.TransactionServer
-
-  import Ecto.Query
-  import Ecto.Multi
 
   def create_transaction(attrs) do
     IO.inspect(attrs, label: "Received attrs")
@@ -72,19 +68,18 @@ defmodule BankingService.Transactions do
     |> Repo.update()
   end
 
+  # defp update_balances(from_account, to_account, amount) do
+  #   from_account_changeset =
+  #     from_account
+  #     |> Ecto.Changeset.change(balance: Decimal.sub(from_account.balance, amount))
 
-  defp update_balances(from_account, to_account, amount) do
-    from_account_changeset =
-      from_account
-      |> Ecto.Changeset.change(balance: Decimal.sub(from_account.balance, amount))
+  #   to_account_changeset =
+  #     to_account
+  #     |> Ecto.Changeset.change(balance: Decimal.add(to_account.balance, amount))
 
-    to_account_changeset =
-      to_account
-      |> Ecto.Changeset.change(balance: Decimal.add(to_account.balance, amount))
-
-    Multi.new()
-    |> Multi.update(:from_account, from_account_changeset)
-    |> Multi.update(:to_account, to_account_changeset)
-    |> Repo.transaction()
-  end
+  #   Multi.new()
+  #   |> Multi.update(:from_account, from_account_changeset)
+  #   |> Multi.update(:to_account, to_account_changeset)
+  #   |> Repo.transaction()
+  # end
 end
