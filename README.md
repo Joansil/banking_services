@@ -24,35 +24,35 @@ O **Banking Transaction Service** é um sistema bancário construído em Elixir 
 
 1. Clone este repositório:
    ```bash
-   git clone https://github.com/seuusuario/banking_services.git
-   cd banking_services
+   		git clone https://github.com/seuusuario/banking_services.git
+   		cd banking_services
 2. Instale as dependências:
 
-mix deps.get
+   		mix deps.get
 
 3. Configure o banco de dados no arquivo config/dev.exs:
 
-config :banking_service, BankingService.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "banking_service_dev",
-  stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+		config :banking_service, BankingService.Repo,
+  			username: "postgres",
+  			password: "postgres",
+  			hostname: "localhost",
+  			database: "banking_service_dev",
+  			stacktrace: true,
+  			show_sensitive_data_on_connection_error: true,
+  			pool_size: 10
 
 4. Crie e migre o banco de dados:
 
-  mix ecto.create
-  mix ecto.migrate
+  		mix ecto.create
+  		mix ecto.migrate
 
 5. Inicie o servidor:
 
-    mix phx.server
+   		mix phx.server
 
 A aplicação estará disponível em:
 
-    http://localhost:4000
+    		http://localhost:4000
 
 _________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
