@@ -24,7 +24,7 @@ O **Banking Transaction Service** é um sistema bancário construído em Elixir 
 
 1. Clone este repositório:
    ```bash
-   		git clone https://github.com/seuusuario/banking_services.git
+   		git clone git@github.com:Joansil/banking_services.git
    		cd banking_services
 2. Instale as dependências:
 
