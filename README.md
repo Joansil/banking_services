@@ -38,7 +38,6 @@ O **Banking Transaction Service** é um sistema bancário construído em Elixir 
   			hostname: "localhost",
   			database: "banking_service_dev",
   			stacktrace: true,
-  			show_sensitive_data_on_connection_error: true,
   			pool_size: 10
 
 4. Crie e migre o banco de dados:
